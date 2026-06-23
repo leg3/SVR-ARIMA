@@ -48,3 +48,34 @@ log_diagnostic_ratio_series <- log_sentiment_series %>%
   select(-value, -mean_value) %>%
   mutate(log_ratio_raw = (log_value_sen - log_value_mnvol))
 
+# Time-ordered partitions (monthly obs)
+n_test <- 84   # ~7 years
+
+# Create modeling dataframe (monthly, ordered, no missing y)
+df_all <- log_diagnostic_ratio_series %>%
+  select(date, y = log_ratio_raw) %>%
+  arrange(date) %>%
+  filter(!is.na(y))
+
+# Total number of observations
+n <- nrow(df_all)
+
+# Sanity check: need enough observations to have train + test
+stopifnot(n_test < n)
+
+# Define start index of the test block in df_all. This is a "global" index
+# relative to df_all.
+i_test_start <- n - n_test + 1
+
+# Subset df_all into training and test sets
+train_df <- df_all[1:(i_test_start - 1), ]
+test_df  <- df_all[i_test_start:n, ]
+
+# Define rolling forecast horizons.  h = steps ahead
+h_list <- c(1, 3)
+
+# Define global start index for the test split inside of df_all Needed because
+# the rolling code maps split row k -> global row in df_all: target_global_idx =
+# split_start_idx + (k - 1) so we can slice df_all[1:origin_global_idx] for an
+# expanding window.
+test_start_idx <- i_test_start
