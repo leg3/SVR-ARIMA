@@ -79,3 +79,12 @@ h_list <- c(1, 3)
 # split_start_idx + (k - 1) so we can slice df_all[1:origin_global_idx] for an
 # expanding window.
 test_start_idx <- i_test_start
+
+# Grid specification for ARIMA (p, d, q) model_id is just a label used
+# downstream in the results table. include_mean rule here: allow mean only when
+# d == 0 (stationary around a mean).
+arima_grid <- expand.grid(p = 1:3, d = 0:1, q = 1:3) %>%
+  as_tibble() %>%
+  mutate(include_mean = if_else(d == 0, TRUE, FALSE),
+         model_id = paste0("ARIMA", p, d, q)) %>%
+  select(model_id, p, d, q, include_mean)
