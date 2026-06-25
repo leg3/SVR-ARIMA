@@ -215,3 +215,7 @@ metrics_arima_nn_wide <- metrics_arima_nn_long %>%
          test_rmse,
          test_mae) %>%
   arrange(horizon, test_mae)
+
+# CSV Export
+write_csv(metrics_arima_nn_wide, "ARIMA Metrics FINAL.csv")
+metrics_arima_nn_wide
