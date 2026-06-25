@@ -88,3 +88,20 @@ arima_grid <- expand.grid(p = 1:3, d = 0:1, q = 1:3) %>%
   mutate(include_mean = if_else(d == 0, TRUE, FALSE),
          model_id = paste0("ARIMA", p, d, q)) %>%
   select(model_id, p, d, q, include_mean)
+
+# Define function to fit grid specification.   given (p,d,q,include_mean),
+# return a function(ts_y) that fits that ARIMA spec.  This lets us pass the
+# ARIMA spec around as a callable "fit_fun".
+make_fit_arima <- function(p, d, q, include_mean) {
+  function(ts_y) {
+    forecast::Arima(ts_y, order = c(p, d, q), include.mean = include_mean)
+  }
+}
+
+# Convert a df slice into a monthly ts object. Start is derived from df_slice so
+# the ts timeline matches the slice.
+make_ts_from_df_all <- function(df_slice) {
+  ts(df_slice$y,
+     start = c(year(min(df_slice$date)), month(min(df_slice$date))),
+     frequency = 12)
+}
