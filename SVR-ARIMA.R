@@ -155,3 +155,30 @@ calc_nn_metrics <- function(preds_tbl) {
     mae  = mean(abs(preds_tbl$resid), na.rm = TRUE)
   )
 }
+
+# Evaluate one ARIMA spec across:
+#   - the test split
+#   - both horizons (h_list)
+#
+# This is the MIDDLE LOOP (over horizons), and it calls the INNER LOOP
+# (rolling over time) via roll_preds_arima_split().
+eval_model_arima_nn <- function(df_all,
+                                test_df,
+                                test_start_idx,
+                                h_list,
+                                fit_fun,
+                                model_id) {
+  purrr::map_dfr(h_list, function(h) {
+    # Rolling predictions for this horizon h
+    preds_test <- roll_preds_arima_split(df_all, test_df, test_start_idx, h, fit_fun, model_id)
+
+    # Summarize forecast accuracy metrics for test
+    calc_nn_metrics(preds_test) %>%
+      mutate(
+        model_id = model_id,
+        split = "test",
+        horizon = h
+      )
+  }) %>%
+    select(model_id, split, horizon, mse, rmse, mae)
+}
