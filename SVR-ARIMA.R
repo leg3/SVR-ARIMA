@@ -199,3 +199,19 @@ metrics_arima_nn_long <- purrr::pmap_dfr(arima_grid, function(model_id, p, d, q,
     model_id = model_id
   )
 })
+
+# Reshape long -> wide for readability: One row per (model_id, horizon), with
+# grouped test_* metric columns
+metrics_arima_nn_wide <- metrics_arima_nn_long %>%
+  pivot_wider(
+    id_cols = c(model_id, horizon),
+    names_from  = split,
+    values_from = c(mse, rmse, mae),
+    names_glue  = "{split}_{.value}"
+  ) %>%
+  select(model_id,
+         horizon,
+         test_mse,
+         test_rmse,
+         test_mae) %>%
+  arrange(horizon, test_mae)
