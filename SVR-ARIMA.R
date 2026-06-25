@@ -146,3 +146,12 @@ roll_preds_arima_split <- function(df_all,
     )
   })
 }
+
+# Define function to calculate forecast accuracy metrics
+calc_nn_metrics <- function(preds_tbl) {
+  tibble(
+    mse  = mean((preds_tbl$resid)^2, na.rm = TRUE),
+    rmse = sqrt(mean((preds_tbl$resid)^2, na.rm = TRUE)),
+    mae  = mean(abs(preds_tbl$resid), na.rm = TRUE)
+  )
+}
