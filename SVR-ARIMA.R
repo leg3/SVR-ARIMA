@@ -182,3 +182,20 @@ eval_model_arima_nn <- function(df_all,
   }) %>%
     select(model_id, split, horizon, mse, rmse, mae)
 }
+
+# OUTERMOST LOOP (over the ARIMA grid): For each row of arima_grid:
+#   - build a fit_fun for that (p,d,q,include_mean)
+#   - evaluate it via eval_model_arima_nn()
+#   - row-bind results into one long table
+metrics_arima_nn_long <- purrr::pmap_dfr(arima_grid, function(model_id, p, d, q, include_mean) {
+  fit_fun <- make_fit_arima(p, d, q, include_mean)
+
+  eval_model_arima_nn(
+    df_all,
+    test_df,
+    test_start_idx,
+    h_list,
+    fit_fun  = fit_fun,
+    model_id = model_id
+  )
+})
